@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>模拟 UEditor 编辑区（内层 iframe）</title>
+<style>
+  body { margin: 0; font-family: "Microsoft YaHei", sans-serif; }
+  #ed { padding: 16px; min-height: 300px; outline: none; background: #fff; }
+  #ed p { margin: 8px 0; }
+  #ed img { width: 100%; }
+</style>
+</head>
+<body>
+
+<!-- 模拟 UEditor 的可编辑区：真实 UEditor 中 ed.body 也指向这类元素。
+     0.2.0 起内容为"Word 粘贴风格"的脏格式，用于验证先清除全部格式再排版 -->
+<div id="ed" contenteditable="true">
+<!--[if gte mso 9]><xml><w:WordDocument><w:BrowserLevel>MicrosoftInternetExplorer4</w:BrowserLevel></w:WordDocument></xml><![endif]-->
+<div class="MsoNormal" style="margin:0cm 0cm 8pt;font-family:Calibri,sans-serif;">
+<h2 class="sub-title" style="color:#ff0000;font-size:16px;font-family:黑体;"><span style="font-family:黑体;">一、研究背景</span></h2>
+<p class="MsoNormal" style="margin:0cm;font-size:12pt;"><span style="font-family:Calibri;color:#1f497d;">中医药信息化建设是当前医学教育改革的重要方向。</span><b>人工智能（AI）与大数据技术的融合</b>，为医学人才培养提供了新的可能，我们参考了 <span style="font-family:Arial;">WHO 2023</span> 年的报告。<o:p></o:p></p>
+<p><img src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='300'%3E%3Crect width='600' height='300' fill='%23e8f0fe'/%3E%3Ctext x='300' y='158' font-size='26' text-anchor='middle' fill='%231a73e8'%3ESample Image 1%3C/text%3E%3C/svg%3E" alt="示例图片1" width="500" class="ke-img" style="width:500px;border:2px solid red;"></p>
+<p style="text-align:center;color:#666;">图 1 智能医学学院课程体系架构</p>
+<p></p>
+<p>在具体实践中，我们引入了 Python、R 等工具，并对比了 LSTM 与 Transformer 两类模型的表现。</p>
+<p><img src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200'%3E%3Crect width='300' height='200' fill='%23e6f4ea'/%3E%3Ctext x='150' y='108' font-size='20' text-anchor='middle' fill='%23137833'%3EImage 2%3C/text%3E%3C/svg%3E" alt="示例图片2"><img src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200'%3E%3Crect width='300' height='200' fill='%23fce8e6'/%3E%3Ctext x='150' y='108' font-size='20' text-anchor='middle' fill='%23c5221f'%3EImage 3%3C/text%3E%3C/svg%3E" alt="示例图片3"></p>
+<p>图 2 双图并列示例</p>
+<div style="background:#ffff00;">综上，本研究提出了<u>一条可行的实施路径</u>。</div>
+</div>
+</div>
+
+<input type="hidden" id="hidden">
+
+<script>
+  // ---- 模拟 UEditor 实例，暴露到本 iframe 的 window.UE ----
+  var body = document.getElementById('ed');
+  var mockEditor = {
+    // UEditor 的 ed.body 指向可编辑区
+    body: body,
+    getContent: function () { return body.innerHTML; },
+    setContent: function (html) { body.innerHTML = html; },
+    // 真实 UEditor 提交表单前会把内容同步回 textarea
+    sync: function () { document.getElementById('hidden').value = body.innerHTML; },
+    fireEvent: function (name) {
+      // 触发 contentchange，便于父页面观察
+      try {
+        parent.postMessage({ type: 'mock-contentchange', name: name }, '*');
+      } catch (e) {}
+    }
+  };
+  window.UE = { instants: { ueditorInstant0: mockEditor } };
+  window.__mockEd = mockEditor;
+</script>
+</body>
+</html>
